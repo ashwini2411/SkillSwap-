@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - SkillSwap</title>
+    <style>
+        :root {
+            --primary-bg: #f4f6f9;
+            --sidebar-bg: #2c3e50;
+            --blue-accent: #3498db;
+            --green-accent: #2ecc71;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --card-bg: #ffffff;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling (Same as Dashboard) */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            color: var(--blue-accent);
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 15px 20px;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #34495e;
+            border-left: 4px solid var(--blue-accent);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            max-width: 900px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--blue-accent);
+        }
+
+        .hint {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background-color: var(--blue-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            background-color: var(--blue-accent);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-right: 20px;
+        }
+
+        .profile-details p {
+            margin: 5px 0;
+            color: #7f8c8d;
+        }
+
+        /* Badge styling */
+        .badge-display {
+            display: inline-block;
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        /* Top Nav */
+        .top-nav {
+            background-color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .top-nav-user {
+            font-weight: bold;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>SkillSwap</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/skills/search">Find Skills</a>
+        <a href="/chat/rooms">Chat Rooms</a>
+        <a href="/store">Rewards Store</a>
+        <a href="/profile" class="active">My Profile</a>
+        
+        <!-- Admin access removed from user sidebar -->
+
+        <form th:action="@{/logout}" method="post" style="margin-top: auto;">
+            <button class="logout-btn" type="submit">Logout</button>
+        </form>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+
+        <!-- Top Navbar logged-in user indicator -->
+        <div class="top-nav">
+            <div class="top-nav-user">
+                &#128100; Logged in as <span th:text="${user.username}">User</span>
+            </div>
+        </div>
+
+        <div style="padding: 0 30px 30px 30px;">
+            <div class="page-header">
+                <h1>My Profile</h1>
+                <p>Manage your skills, view your reputation, and update your profile.</p>
+            </div>
+
+            <div th:if="${param.success}" class="alert alert-success">
+                Your profile was updated successfully!
+            </div>
+
+            <!-- Reputation & Points Panel -->
+            <div class="profile-card" style="display:flex; justify-content:space-between; align-items:center; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; border-radius: 8px;">
+                <div>
+                    <h2 style="margin:0; color:var(--primary-color);">
+                        &#128100; <span th:text="${user.username}">Username</span>
+                        <span th:if="${user.badge != null}" class="badge-display" th:text="${user.badge}">Master</span>
+                    </h2>
+                    <h3 style="margin:5px 0 0 0; color:var(--text-color);">
+                        Rating: 
+                        <span style="color:#f1c40f;" th:text="${user.rating != null ? user.rating : '0.0'}">5.0</span> 
+                        &#11088;
+                    </h3>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size: 2.5rem; font-weight:bold; color:var(--primary-color);" th:text="${user.points != null ? user.points : 0}">0</div>
+                    <div style="color:#777; font-size:0.9rem;">Reputation Points</div>
+                    <a href="/store" class="btn btn-primary" style="padding: 5px 10px; font-size: 0.8rem; margin-top:10px; text-decoration:none; display:inline-block;">Spend Points</a>
+                </div>
+            </div>
+
+            <div class="profile-card" style="background: #fff; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                <h2>Update Your Skills</h2>
+                <form th:action="@{/profile/update}" method="post">
+                    
+                    <div class="form-group border-bottom">
+                        <label for="skillsOffered" class="form-label">Skills You Offer</label>
+                        <p class="form-text">What can you teach others? Be specific (e.g. Java, Spring Boot, React)</p>
+                        <textarea id="skillsOffered" name="skillsOffered" class="form-control" rows="4" 
+                            th:text="${user.skillsOffered}" placeholder="Enter the skills you want to teach..."></textarea>
+                    </div>
+
+                    <div class="form-group border-bottom" style="margin-top: 20px;">
+                        <label for="skillsWanted" class="form-label">Skills You Want to Learn</label>
+                        <p class="form-text">What are you looking to learn? (e.g. Python, UI Design)</p>
+                        <textarea id="skillsWanted" name="skillsWanted" class="form-control" rows="4" 
+                            th:text="${user.skillsWanted}" placeholder="Enter the skills you want to learn..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 10px 20px; background-color: var(--blue-accent); color: white; border: none; border-radius: 6px; cursor: pointer;">Save Profile</button>
+                </form>
+            </div>
+            
+            <!-- Received Feedback -->
+            <div class="profile-card" style="margin-top: 30px; background: #fff; padding: 20px; border-radius: 8px;">
+                <h2>&#128172; Received Feedback</h2>
+                
+                <div th:if="${reviews == null or reviews.empty}">
+                    <p style="color: #7f8c8d; text-align:center;">You haven't received any reviews yet. Complete a swap to start getting ratings!</p>
+                </div>
+
+                <div th:each="rev : ${reviews}" style="border-bottom: 1px solid #eee; padding: 15px 0;">
+                    <div style="display:flex; justify-content: space-between; align-items:flex-start;">
+                        <div>
+                            <strong style="color:var(--text-dark);" th:text="${rev.reviewer.username}">Reviewer</strong>
+                            <div style="color: #777; font-size: 0.85rem;" th:text="${#temporals.format(rev.createdAt, 'MMM dd, yyyy')}">Date</div>
+                        </div>
+                        <div style="color:#f1c40f; font-weight:bold;">
+                            <span th:text="${rev.rating}">5</span> &#11088;
+                        </div>
+                    </div>
+                    <p style="margin: 10px 0 0 0; line-height:1.5; color:var(--text-dark);" th:text="${rev.feedback}">Feedback text goes here...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

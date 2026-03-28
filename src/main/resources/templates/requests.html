@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swap Requests - SkillSwap</title>
+    <style>
+        :root {
+            --primary-bg: #f4f6f9;
+            --sidebar-bg: #2c3e50;
+            --blue-accent: #3498db;
+            --green-accent: #2ecc71;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --card-bg: #ffffff;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            color: var(--blue-accent);
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 15px 20px;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #34495e;
+            border-left: 4px solid var(--blue-accent);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+        .logout-btn:hover { background-color: #c0392b; }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            max-width: 1100px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin: 0 0 10px 0;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--blue-accent);
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        .request-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+
+        .request-card.pending { border-left-color: #f1c40f; }
+        .request-card.accepted { border-left-color: #2ecc71; }
+        .request-card.rejected { border-left-color: #e74c3c; opacity: 0.7;}
+
+        .request-info h3 { margin: 0 0 5px 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;}
+        .request-info p { margin: 0; color: #7f8c8d; }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: white;
+            background-color: #95a5a6;
+        }
+
+        .status-badge.pending { background-color: #f1c40f; }
+        .status-badge.accepted { background-color: #2ecc71; }
+        .status-badge.rejected { background-color: #e74c3c; }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            color: white;
+        }
+
+        .btn:hover { opacity: 0.8; }
+        .btn-green { background-color: var(--green-accent); }
+        .btn-red { background-color: #e74c3c; }
+        .btn-blue { background-color: var(--blue-accent); text-decoration: none; }
+
+        .empty-message {
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            text-align: center;
+        }
+
+        /* Top Nav */
+        .top-nav {
+            background-color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .top-nav-user {
+            font-weight: bold;
+            color: var(--blue-accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>SkillSwap</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/skills/search">Find Skills</a>
+        <a href="/chat/rooms">Chat Rooms</a>
+        <a href="/store">Rewards Store</a>
+        <a href="/profile">My Profile</a>
+        
+        <!-- Admin access removed from user sidebar -->
+
+        <form th:action="@{/logout}" method="post" style="margin-top: auto;">
+            <button class="logout-btn" type="submit">Logout</button>
+        </form>
+    </div>
+
+    <div class="main-content" style="padding:0;">
+        <!-- Top Navbar logged-in user indicator -->
+        <div class="top-nav">
+            <div class="top-nav-user">
+                &#128100; Logged in as <span sec:authentication="name">User</span>
+            </div>
+        </div>
+
+        <div style="padding: 0 40px 40px 40px;">
+            <div class="header">
+                <h1>Swap Requests</h1>
+                <p style="color: #7f8c8d;">Review and manage your incoming and outgoing skill swap requests.</p>
+            </div>
+
+        <!-- Incoming Requests -->
+        <h2 class="section-title">Incoming Requests</h2>
+        <div th:if="${incoming == null or incoming.empty}" class="empty-message">
+            You don't have any incoming requests right now.
+        </div>
+        
+        <div th:each="req : ${incoming}" class="request-card" th:classappend="${#strings.toLowerCase(req.status)}">
+            <div class="request-info">
+                <h3>
+                    <a th:href="@{'/profile/' + ${req.sender.id}}" th:text="${req.sender.username}" style="color:var(--text-dark); text-decoration:none;">Sender</a> 
+                    <span class="status-badge" th:classappend="${#strings.toLowerCase(req.status)}" th:text="${req.status}">STATUS</span>
+                </h3>
+                <p>Wants to learn: <strong th:text="${req.requestedSkill}">Skill</strong></p>
+                <p>Can teach you: <strong th:text="${req.offeredSkill}">Skill</strong></p>
+                <p style="font-size: 0.8rem; margin-top: 5px;">Requested on <span th:text="${#temporals.format(req.requestDate, 'dd MMM yyyy')}">Date</span></p>
+            </div>
+            
+            <div class="actions" th:if="${req.status == 'PENDING'}">
+                <form th:action="@{/requests/{id}/accept(id=${req.id})}" method="post">
+                    <button type="submit" class="btn btn-green">Accept</button>
+                </form>
+                <form th:action="@{/requests/{id}/reject(id=${req.id})}" method="post">
+                    <button type="submit" class="btn btn-red">Reject</button>
+                </form>
+            </div>
+            <div class="actions" th:if="${req.status == 'ACCEPTED'}">
+               <a th:href="@{/chat/{id}(id=${req.id})}" class="btn btn-blue">Start Chatting</a>
+            </div>
+        </div>
+
+        <!-- Outgoing Requests -->
+        <h2 class="section-title">Sent Requests</h2>
+        <div th:if="${outgoing == null or outgoing.empty}" class="empty-message">
+            You haven't sent any skill swap requests yet. <a href="/skills/search" style="color:var(--blue-accent);">Find members!</a>
+        </div>
+        
+        <div th:each="req : ${outgoing}" class="request-card" th:classappend="${#strings.toLowerCase(req.status)}">
+            <div class="request-info">
+                <h3>
+                    <a th:href="@{'/profile/' + ${req.receiver.id}}" th:text="${req.receiver.username}" style="color:var(--text-dark); text-decoration:none;">Receiver</a> 
+                    <span class="status-badge" th:classappend="${#strings.toLowerCase(req.status)}" th:text="${req.status}">STATUS</span>
+                </h3>
+                <p>You requested to learn: <strong th:text="${req.requestedSkill}">Skill</strong></p>
+            </div>
+             <div class="actions" th:if="${req.status == 'ACCEPTED'}">
+               <a th:href="@{/chat/{id}(id=${req.id})}" class="btn btn-blue">Start Chatting</a>
+            </div>
+        </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

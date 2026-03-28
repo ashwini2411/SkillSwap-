@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room - SkillSwap</title>
+    <style>
+        :root {
+            --primary-bg: #f4f6f9;
+            --sidebar-bg: #2c3e50;
+            --blue-accent: #3498db;
+            --green-accent: #2ecc71;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --card-bg: #ffffff;
+            --border-radius: 8px;
+            --chat-bg: #e5ddd5;
+            --my-msg: #dcf8c6;
+            --their-msg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll */
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            color: var(--blue-accent);
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 15px 20px;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #34495e;
+            border-left: 4px solid var(--blue-accent);
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--chat-bg);
+            position: relative;
+        }
+
+        .chat-header {
+            background-color: var(--sidebar-bg);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+            font-size: 1.2rem;
+            transition: color 0.2s;
+        }
+        .back-btn:hover { color: var(--blue-accent); }
+
+        .chat-header-info h2 { margin: 0; font-size: 1.3rem; }
+        .chat-header-info p { margin: 2px 0 0 0; font-size: 0.85rem; color: #bdc3c7;}
+
+        /* Messages Area */
+        .messages-container {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 60%;
+            padding: 10px 15px;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            line-height: 1.4;
+        }
+
+        .message.my-message {
+            align-self: flex-end;
+            background-color: var(--my-msg);
+            border-bottom-right-radius: 0;
+        }
+
+        .message.their-message {
+            align-self: flex-start;
+            background-color: var(--their-msg);
+            border-bottom-left-radius: 0;
+        }
+
+        .message-time {
+            display: block;
+            font-size: 0.7rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .system-message {
+            align-self: center;
+            background-color: rgba(0,0,0,0.05);
+            color: #555;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin: 15px 0;
+        }
+
+        /* Input Area */
+        .chat-input-area {
+            background-color: #f0f0f0;
+            padding: 15px 30px;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1rem;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chat-input:focus { outline: none; }
+
+        .send-btn {
+            background-color: var(--blue-accent);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .send-btn:hover { background-color: #2980b9; transform: translateY(-1px);}
+
+        /* Top Nav */
+        .top-nav {
+            background-color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            z-index: 20;
+        }
+        
+        .top-nav-user {
+            font-weight: bold;
+            color: var(--blue-accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>SkillSwap</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/skills/search">Find Skills</a>
+        <a href="/chat/rooms" class="active">Chat Rooms</a>
+        <a href="/store">Rewards Store</a>
+        <a href="/profile">My Profile</a>
+    </div>
+
+    <div class="main-content">
+        <!-- Top Navbar logged-in user indicator -->
+        <div class="top-nav">
+            <div class="top-nav-user">
+                &#128100; Logged in as <span sec:authentication="name">User</span>
+            </div>
+        </div>
+
+        <div class="chat-header">
+            <a href="/chat/rooms" class="back-btn">&#8592;</a>
+            <div class="chat-header-info">
+                <h2 th:if="${chatRoom.sender.id == currentUser.id}">Chat with <a th:href="@{'/profile/' + ${chatRoom.receiver.id}}" th:text="${chatRoom.receiver.username}" style="color:white; text-decoration:underline;">User</a></h2>
+                <h2 th:if="${chatRoom.receiver.id == currentUser.id}">Chat with <a th:href="@{'/profile/' + ${chatRoom.sender.id}}" th:text="${chatRoom.sender.username}" style="color:white; text-decoration:underline;">User</a></h2>
+                <p>
+                    Swap: <span th:text="${chatRoom.requestedSkill}">Requested</span> for <span th:text="${chatRoom.offeredSkill}">Offered</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesBox">
+            <div class="system-message">
+                Swap Request accepted on <span th:text="${#temporals.format(chatRoom.requestDate, 'dd MMM yyyy')}">Date</span>. Start chatting!
+            </div>
+            
+            <div th:each="msg : ${messages}" class="message" th:classappend="${msg.sender.id == currentUser.id ? 'my-message' : 'their-message'}">
+                <span th:text="${msg.content}">Message text</span>
+                <span class="message-time" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</span>
+            </div>
+        </div>
+
+        <form class="chat-input-area" th:action="@{/chat/{id}/send(id=${chatRoom.id})}" method="post">
+            <input type="text" name="content" class="chat-input" placeholder="Type a message..." required autocomplete="off" autofocus>
+            <button type="submit" class="send-btn">&#10148;</button>
+        </form>
+
+    </div>
+
+    <script>
+        // Auto-scroll to bottom of messages container
+        var msgBox = document.getElementById("messagesBox");
+        msgBox.scrollTop = msgBox.scrollHeight;
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SkillSwap</title>
+    <style>
+        :root {
+            --primary-bg: #f4f6f9;
+            --sidebar-bg: #2c3e50;
+            --blue-accent: #3498db;
+            --green-accent: #2ecc71;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --card-bg: #ffffff;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            color: var(--blue-accent);
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 15px 20px;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #34495e;
+            border-left: 4px solid var(--blue-accent);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .user-greeting {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: var(--blue-accent);
+            border-bottom: 2px solid var(--primary-bg);
+            padding-bottom: 10px;
+        }
+
+        .skill-tag {
+            display: inline-block;
+            background-color: var(--primary-bg);
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin: 5px 5px 0 0;
+            border: 1px solid #ddd;
+        }
+
+        /* Admin Controls */
+        .admin-panel {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 30px;
+        }
+
+        /* Top Nav */
+        .top-nav {
+            background-color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .top-nav-user {
+            font-weight: bold;
+            color: var(--blue-accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-green { background-color: var(--green-accent); }
+        .btn-blue { background-color: var(--blue-accent); }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+        <h2>SkillSwap</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/skills/search">Find Skills</a>
+        <a href="/chat/rooms">Chat Rooms</a>
+        <a href="/profile">My Profile</a>
+        
+        <!-- Admin link only visible to ADMIN roles has been removed -->
+
+        <form th:action="@{/logout}" method="post" style="margin-top: auto;">
+            <button class="logout-btn" type="submit">Logout</button>
+        </form>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Top Navbar logged-in user indicator -->
+        <div class="top-nav">
+            <div class="top-nav-user">
+                &#128100; Logged in as <span sec:authentication="name">User</span>
+            </div>
+        </div>
+        
+        <div style="padding: 0 30px 30px 30px;">
+            <div class="page-header">
+                <div class="user-greeting">
+                    Welcome back, <span sec:authentication="name">User</span>!
+                </div>
+                <!-- Admin badge removed from here -->
+            </div>
+
+        <!-- Global Notifications Alert Box -->
+        <div th:if="${notifications != null and !notifications.empty}" style="margin-bottom: 25px;">
+            <div th:each="n : ${notifications}" style="background-color: #d1ecf1; color: #0c5460; padding: 15px 20px; border-radius: var(--border-radius); border-left: 5px solid #17a2b8; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; align-items: flex-start; gap: 10px;">
+                <span style="font-size: 1.2rem;">&#128226;</span>
+                <div>
+                    <div style="font-weight: bold; margin-bottom: 5px;">System Announcement</div>
+                    <div th:text="${n.message}">Message</div>
+                    <div style="font-size: 0.75rem; color: #555; margin-top: 5px;" th:text="${#temporals.format(n.createdAt, 'MMM dd, hh:mm a')}">Date</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards-container">
+            <!-- Skills Offered Card -->
+            <div class="card">
+                <h3>My Offered Skills</h3>
+                <div th:if="${user.skillsOffered != null}">
+                    <span class="skill-tag" th:text="${user.skillsOffered}">Java Spring Boot</span>
+                </div>
+                <div th:unless="${user.skillsOffered != null}">
+                    <p style="color: #7f8c8d; font-size: 0.9rem;">You haven't listed any skills yet. Let others know what you can teach!</p>
+                </div>
+            </div>
+
+            <!-- Skills Wanted Card -->
+            <div class="card">
+                <h3>Skills I'm Looking For</h3>
+                <div th:if="${user.skillsWanted != null}">
+                    <span class="skill-tag" th:text="${user.skillsWanted}">React.js</span>
+                </div>
+                <div th:unless="${user.skillsWanted != null}">
+                    <p style="color: #7f8c8d; font-size: 0.9rem;">Add skills you want to learn to get matched with others.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Swap Requests -->
+        <div class="card">
+            <h3>Recent Swap Requests</h3>
+            <p>You have <strong style="color: var(--blue-accent);" th:text="${pendingRequestsCount}">0</strong> new <span th:text="${pendingRequestsCount == 1 ? 'request' : 'requests'}">requests</span> waiting for your approval.</p>
+            <a href="/requests" class="btn btn-blue">View Requests</a>
+        </div>
+
+       <!-- Admin panel removed from standard user dashboard -->
+
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewards Store - SkillSwap</title>
+    <style>
+        :root {
+            --primary-bg: #f4f6f9;
+            --sidebar-bg: #2c3e50;
+            --blue-accent: #3498db;
+            --green-accent: #2ecc71;
+            --yellow-accent: #f1c40f;
+            --red-accent: #e74c3c;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --card-bg: #ffffff;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling (Copied from standard layout) */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+        .sidebar h2 { text-align: center; margin-bottom: 30px; font-size: 1.5rem; color: var(--blue-accent); }
+        .sidebar a { color: var(--text-light); text-decoration: none; padding: 15px 20px; display: block; transition: background 0.3s; }
+        .sidebar a:hover, .sidebar a.active { background-color: #34495e; border-left: 4px solid var(--blue-accent); }
+        .logout-btn { margin-top: auto; background-color: var(--red-accent); color: white; border: none; padding: 15px 20px; cursor: pointer; text-align: left; width: 100%; font-size: 1rem; }
+        .logout-btn:hover { background-color: #c0392b; }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navbar */
+        .top-nav {
+            background-color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .top-nav-user {
+            font-weight: bold;
+            color: var(--blue-accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-body { padding: 0 30px 30px 30px; }
+
+        .page-header { margin-bottom: 30px; }
+        .page-header h1 { margin: 0; font-size: 2rem; color: var(--text-dark); display: flex; align-items: center; gap: 10px; }
+        .page-header p { margin: 5px 0 0 0; color: #7f8c8d; }
+
+        .wallet-card {
+            background: linear-gradient(135deg, #1e88e5, #0d47a1);
+            color: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wallet-card h2 { margin: 0; font-size: 2.5rem; }
+        .wallet-card p { margin: 5px 0 0 0; opacity: 0.9; }
+
+        /* Store Grid */
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .store-item {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+            transition: transform 0.2s;
+        }
+        .store-item:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        .item-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .item-name { font-weight: bold; font-size: 1.2rem; color: var(--text-dark); margin-bottom: 5px; }
+        .item-desc { color: #7f8c8d; font-size: 0.9rem; margin-bottom: 15px; }
+        
+        .item-cost {
+            display: inline-block;
+            background-color: #fce4ec;
+            color: #d81b60;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .btn-buy {
+            background-color: var(--green-accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        .btn-buy:hover { opacity: 0.9; }
+        .btn-buy:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>SkillSwap</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/skills/search">Find Skills</a>
+        <a href="/chat/rooms">Chat Rooms</a>
+        <a href="/store" class="active">Rewards Store</a>
+        <a href="/profile">My Profile</a>
+        
+        <form th:action="@{/logout}" method="post" style="margin-top: auto;">
+            <button class="logout-btn" type="submit">Logout</button>
+        </form>
+    </div>
+
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <div class="top-nav">
+            <div class="top-nav-user">
+                &#128100; Logged in as <span th:text="${user.username}">User</span>
+            </div>
+        </div>
+        
+        <div class="content-body">
+            
+            <div th:if="${param.success != null}" style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <strong>Purchase Successful!</strong> Your shiny new badge will now appear on your profile!
+            </div>
+            
+            <div th:if="${param.error != null}" style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <strong>Transaction Failed!</strong> You don't have enough reputation points to buy this item yet!
+            </div>
+
+            <div class="wallet-card">
+                <div>
+                    <h2 th:text="${user.points != null ? user.points : 0}">0</h2>
+                    <p>Reputation Points</p>
+                </div>
+                <h2>&#128176;</h2>
+            </div>
+            
+            <div class="page-header">
+                <h1>&#127873; Exchange Points for Rewards</h1>
+                <p>Spend your hard-earned reputation points on exclusive Profile Badges!</p>
+            </div>
+
+            <!-- Hardcoded Store Catalog -->
+            <div class="store-grid">
+                
+                <div class="store-item">
+                    <div class="item-icon">&#127891;</div>
+                    <div class="item-name">Scholar</div>
+                    <div class="item-desc">A badge showing you've successfully completed your first few lessons.</div>
+                    <div class="item-cost">50 Points</div>
+                    <form th:action="@{/store/buy}" method="post">
+                        <input type="hidden" name="itemId" value="scholar">
+                        <input type="hidden" name="cost" value="50">
+                        <input type="hidden" name="badgeName" value="&#127891; Scholar">
+                        <button type="submit" class="btn-buy" th:disabled="${user.points == null or user.points < 50}">Unlock Badge</button>
+                    </form>
+                </div>
+
+                <div class="store-item">
+                    <div class="item-icon">&#128187;</div>
+                    <div class="item-name">Tech Guru</div>
+                    <div class="item-desc">An elite badge for highly rated teachers.</div>
+                    <div class="item-cost">200 Points</div>
+                    <form th:action="@{/store/buy}" method="post">
+                        <input type="hidden" name="itemId" value="techguru">
+                        <input type="hidden" name="cost" value="200">
+                        <input type="hidden" name="badgeName" value="&#128187; Tech Guru">
+                        <button type="submit" class="btn-buy" th:disabled="${user.points == null or user.points < 200}">Unlock Badge</button>
+                    </form>
+                </div>
+
+                <div class="store-item">
+                    <div class="item-icon">&#128142;</div>
+                    <div class="item-name">Verified Expert</div>
+                    <div class="item-desc">The ultimate badge of trust and skill. Guaranteed to get you more swaps!</div>
+                    <div class="item-cost">500 Points</div>
+                    <form th:action="@{/store/buy}" method="post">
+                        <input type="hidden" name="itemId" value="verifiedexpert">
+                        <input type="hidden" name="cost" value="500">
+                        <input type="hidden" name="badgeName" value="&#128142; Verified Expert">
+                        <button type="submit" class="btn-buy" th:disabled="${user.points == null or user.points < 500}">Unlock Badge</button>
+                    </form>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

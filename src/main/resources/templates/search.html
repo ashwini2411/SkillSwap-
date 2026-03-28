@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Skills - SkillSwap</title>
+    <style>
+        :root {
+            --primary-bg: #f4f6f9;
+            --sidebar-bg: #2c3e50;
+            --blue-accent: #3498db;
+            --green-accent: #2ecc71;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --card-bg: #ffffff;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            color: var(--blue-accent);
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 15px 20px;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #34495e;
+            border-left: 4px solid var(--blue-accent);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover { background-color: #c0392b; }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            max-width: 1100px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin: 0 0 10px 0;
+        }
+
+        /* Search Bar */
+        .search-container {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--blue-accent);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            background-color: var(--blue-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover { background-color: #2980b9; }
+
+        .btn-green { background-color: var(--green-accent); padding: 10px 20px; font-size: 0.9rem;}
+        .btn-green:hover { background-color: #27ae60; }
+
+        /* User Cards */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid var(--blue-accent);
+        }
+
+        .user-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .user-info h3 { margin: 0; font-size: 1.2rem; }
+        .user-info p { margin: 2px 0 0 0; color: #7f8c8d; font-size: 0.9rem; }
+
+        .skills-section { margin-bottom: 15px; flex-grow: 1;}
+        .skills-section h4 { margin: 0 0 5px 0; font-size: 0.9rem; color: #555; text-transform: uppercase;}
+
+        .skill-tag {
+            display: inline-block;
+            background-color: #f1f5f9;
+            color: #334155;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin: 0 5px 5px 0;
+            border: 1px solid #e2e8f0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: var(--border-radius);
+            color: #7f8c8d;
+        }
+
+        /* Top Nav */
+        .top-nav {
+            background-color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .top-nav-user {
+            font-weight: bold;
+            color: var(--blue-accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>SkillSwap</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/skills/search" class="active">Find Skills</a>
+        <a href="/chat/rooms">Chat Rooms</a>
+        <a href="/profile">My Profile</a>
+        
+        <!-- Admin access removed from user sidebar -->
+
+        <form th:action="@{/logout}" method="post" style="margin-top: auto;">
+            <button class="logout-btn" type="submit">Logout</button>
+        </form>
+    </div>
+
+    <div class="main-content" style="padding:0;">
+        <!-- Top Navbar logged-in user indicator -->
+        <div class="top-nav">
+            <div class="top-nav-user">
+                &#128100; Logged in as <span sec:authentication="name">User</span>
+            </div>
+        </div>
+
+        <div style="padding: 0 40px 40px 40px;">
+            <div class="header">
+                <h1>Discover Skills to Learn</h1>
+                <p style="color: #7f8c8d;">Search for members offering the skills you want to learn.</p>
+            </div>
+
+        <div th:if="${errorMessage}" style="background-color: #fdeaea; color: #c0392b; padding: 15px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #c0392b;">
+            <strong>Error:</strong> <span th:text="${errorMessage}"></span>
+        </div>
+
+        <form action="/skills/search" method="get" class="search-container">
+            <input type="text" name="q" class="search-input" placeholder="e.g. Java, Spanish, Cooking..." th:value="${query}">
+            <button type="submit" class="btn">Search</button>
+        </form>
+
+        <div th:if="${users == null or users.empty}" class="empty-state">
+            <h2 style="margin-top:0;">No members found.</h2>
+            <p th:if="${query != null}">Try searching for a different skill.</p>
+            <p th:unless="${query != null}">There are currently no members offering skills.</p>
+        </div>
+
+        <div class="results-grid" th:if="${users != null and !users.empty}">
+            
+            <div th:each="u : ${users}" class="user-card">
+                <div class="user-header">
+                    <div class="avatar" th:text="${#strings.substring(u.username,0,1).toUpperCase()}">U</div>
+                    <div class="user-info">
+                        <h3><a th:href="@{'/profile/' + ${u.id}}" th:text="${u.username}" style="color:var(--text-dark); text-decoration:none;">Username</a></h3>
+                        <p>Joined <span th:text="${#temporals.format(u.joinDate, 'MMM yyyy')}">Date</span></p>
+                    </div>
+                </div>
+
+                <div class="skills-section">
+                    <h4>Offers:</h4>
+                    <span th:if="${u.skillsOffered != null and !u.skillsOffered.isEmpty()}" 
+                          class="skill-tag" th:text="${u.skillsOffered}">Skills</span>
+                    <span th:unless="${u.skillsOffered != null and !u.skillsOffered.isEmpty()}"
+                          style="font-size:0.85rem; color:#999;">None listed</span>
+                </div>
+
+                <div class="skills-section">
+                    <h4>Wants:</h4>
+                    <span th:if="${u.skillsWanted != null and !u.skillsWanted.isEmpty()}" 
+                          class="skill-tag" th:text="${u.skillsWanted}">Skills</span>
+                    <span th:unless="${u.skillsWanted != null and !u.skillsWanted.isEmpty()}"
+                          style="font-size:0.85rem; color:#999;">None listed</span>
+                </div>
+
+                <!-- Form to send a swap request -->
+                <form th:action="@{/requests/send}" method="post" style="margin-top: 10px;">
+                    <input type="hidden" name="receiverId" th:value="${u.id}"/>
+                    <button type="submit" class="btn btn-green" style="width: 100%;">Send Swap Request</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

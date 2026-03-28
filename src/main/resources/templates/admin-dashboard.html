@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SkillSwap</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f8;
+            --navbar-bg: #ffffff;
+            --text-dark: #333333;
+            --text-muted: #888888;
+            
+            /* Card Colors from Video */
+            --card-blue: #1e88e5;
+            --card-green: #2e7d32;
+            --card-yellow: #fbc02d;
+            --card-cyan: #00bcd4;
+            
+            /* Button Colors from Video */
+            --btn-purple: #7e57c2;
+            --btn-green: #26a69a;
+            --btn-cyan: #00bcd4;
+            --btn-yellow: #ffca28;
+            
+            /* Gradients */
+            --header-gradient: linear-gradient(135deg, #7e57c2, #5e35b1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+        }
+
+        /* Top Navbar */
+        .navbar {
+            background-color: var(--navbar-bg);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1e88e5;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+        }
+
+        /* Main Content Container */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .page-header {
+            margin-bottom: 30px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: var(--text-dark);
+        }
+
+        .page-header p {
+            margin: 5px 0 0 0;
+            color: var(--text-muted);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            border-radius: 12px;
+            padding: 25px 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .stat-card .label {
+            font-size: 1rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .bg-blue { background-color: var(--card-blue); }
+        .bg-green { background-color: var(--card-green); }
+        .bg-yellow { background-color: var(--card-yellow); color: #333;}
+        .bg-cyan { background-color: var(--card-cyan); }
+
+        /* Quick Actions Panel */
+        .panel {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .panel-header {
+            background: var(--header-gradient);
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .panel-body {
+            padding: 25px 20px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: opacity 0.2s;
+        }
+        
+        .btn:hover { opacity: 0.9; }
+
+        .btn-purple { background-color: var(--btn-purple); }
+        .btn-green { background-color: var(--btn-green); }
+        .btn-cyan { background-color: var(--btn-cyan); }
+        .btn-yellow { background-color: var(--btn-yellow); color: #333; }
+        .btn-red { background-color: #e53935; }
+
+        /* Tables & Forms */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eeebbbb;
+        }
+        th { color: var(--text-muted); font-weight: bold; }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar matching the video exactly -->
+    <div class="navbar">
+        <div class="nav-brand">
+            &#129309; Skill Swap
+        </div>
+        <div class="nav-links">
+            <a href="/dashboard">Home</a>
+            <a href="/skills/search">Browse Skills</a>
+            <a href="/chat/rooms">Rooms</a>
+            <a href="/dashboard">Dashboard</a>
+            <a href="/admin/dashboard" style="color:#1e88e5; font-weight:bold;">Admin</a>
+        </div>
+        <div class="nav-user">
+            &#128100; <span sec:authentication="name">admin</span>
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" style="background:none; border:none; cursor:pointer; font-weight:bold; color:#e53935;">Logout</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="page-header">
+            <div th:if="${param.success}" style="background-color: #d4edda; color: #155724; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-weight:bold;">
+                Action completed successfully.
+            </div>
+            <h1>&#127912; Admin Dashboard</h1>
+            <p>Platform management and overview</p>
+        </div>
+
+        <!-- 4 Stat Cards from Video -->
+        <div class="stats-grid">
+            <div class="stat-card bg-blue">
+                <div>
+                    <div class="value" th:text="${totalUsers}">5</div>
+                    <div class="label">Total Users</div>
+                </div>
+                <h2>&#128101;</h2>
+            </div>
+            <div class="stat-card bg-green">
+                <div>
+                    <div class="value" th:text="${totalSkills}">4</div>
+                    <div class="label">Total Skills</div>
+                </div>
+                <h2>&#9881;</h2>
+            </div>
+            <div class="stat-card bg-yellow">
+                <div>
+                    <div class="value" th:text="${pendingSwaps}">0</div>
+                    <div class="label">Pending Swaps</div>
+                </div>
+                <h2>&#128336;</h2>
+            </div>
+            <div class="stat-card bg-cyan">
+                <div>
+                    <div class="value" th:text="${completedSwaps}">2</div>
+                    <div class="label">Completed Swaps</div>
+                </div>
+                <h2>&#10004;</h2>
+            </div>
+        </div>
+
+        <!-- Quick Actions Panel from Video -->
+        <div class="panel">
+            <div class="panel-header">
+                &#9889; Quick Actions
+            </div>
+            <div class="panel-body action-buttons">
+                <!-- Anchor links to scroll to the sections below -->
+                <a href="#manageUsers" class="btn btn-purple">&#128101; Manage Users</a>
+                <a href="#broadcast" class="btn btn-yellow">&#128226; Send Platform Message</a>
+                <a href="/admin/users/export-csv" class="btn btn-cyan">&#128196; View/Download Reports</a>
+            </div>
+        </div>
+
+        <!-- Interactive Layout Sections -->
+        <div style="display: grid; grid-template-columns: 1fr; gap: 30px;">
+            
+            <!-- Send Platform Message (Yellow) -->
+            <div class="panel" id="broadcast">
+                <div class="panel-header" style="background: linear-gradient(135deg, #ffca28, #f57f17); color: #333;">
+                    &#128226; Send Platform Message
+                </div>
+                <div class="panel-body">
+                    <form th:action="@{/admin/notify}" method="post">
+                        <textarea name="message" rows="3" placeholder="Type a message that will appear on ALL user dashboards..." required></textarea>
+                        <button type="submit" class="btn btn-yellow">Broadcast</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Manage Users (Purple) -->
+            <div class="panel" id="manageUsers">
+                <div class="panel-header">
+                    &#128101; Platform Users
+                </div>
+                <div class="panel-body" style="overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="u : ${users}">
+                                <td th:text="${u.id}">1</td>
+                                <td><strong th:text="${u.username}">Username</strong></td>
+                                <td th:text="${#strings.substring(u.role, 5)}">USER</td>
+                                <td>
+                                    <span th:if="${!u.banned}" style="color:var(--card-green); font-weight:bold;">ACTIVE</span>
+                                    <span th:if="${u.banned}" style="color:#e53935; font-weight:bold;">BANNED</span>
+                                </td>
+                                <td>
+                                    <div th:if="${u.role != 'ROLE_ADMIN'}" style="display:flex; gap:10px;">
+                                        <form th:if="${!u.banned}" th:action="@{'/admin/users/' + ${u.id} + '/ban'}" method="post">
+                                            <button type="submit" class="btn btn-red" style="padding: 5px 10px; font-size:0.8rem;">Ban</button>
+                                        </form>
+                                        <form th:if="${u.banned}" th:action="@{'/admin/users/' + ${u.id} + '/unban'}" method="post">
+                                            <button type="submit" class="btn btn-green" style="padding: 5px 10px; font-size:0.8rem;">Unban</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

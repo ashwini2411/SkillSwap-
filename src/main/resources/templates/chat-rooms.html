@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Rooms - SkillSwap</title>
+    <style>
+        :root {
+            --primary-bg: #f4f6f9;
+            --sidebar-bg: #2c3e50;
+            --blue-accent: #3498db;
+            --green-accent: #2ecc71;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --card-bg: #ffffff;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+            color: var(--blue-accent);
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            padding: 15px 20px;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #34495e;
+            border-left: 4px solid var(--blue-accent);
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover { background-color: #c0392b; }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            padding: 40px;
+            max-width: 1100px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin: 0 0 10px 0;
+        }
+
+        .chat-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .chat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--text-dark);
+            border-left: 4px solid var(--blue-accent);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .chat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .chat-info h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .chat-info p { margin: 0; color: #7f8c8d; font-size: 0.9rem;}
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            background: white;
+            border-radius: var(--border-radius);
+        }
+
+        /* Top Nav */
+        .top-nav {
+            background-color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .top-nav-user {
+            font-weight: bold;
+            color: var(--blue-accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .empty-message a {
+            color: var(--blue-accent);
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>SkillSwap</h2>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/skills/search">Find Skills</a>
+        <a href="/chat/rooms" class="active">Chat Rooms</a>
+        <a href="/store">Rewards Store</a>
+        <a href="/profile">My Profile</a>
+        
+        <!-- Admin access removed from user sidebar -->
+
+        <form th:action="@{/logout}" method="post" style="margin-top: auto;">
+            <button class="logout-btn" type="submit">Logout</button>
+        </form>
+    </div>
+
+    <div class="main-content" style="padding:0;">
+        <!-- Top Navbar logged-in user indicator -->
+        <div class="top-nav">
+            <div class="top-nav-user">
+                &#128100; Logged in as <span sec:authentication="name">User</span>
+            </div>
+        </div>
+
+        <div style="padding: 0 40px 40px 40px;">
+            <div class="header">
+                <h1>My Chat Rooms</h1>
+                <p>Communicate with your swap partners.</p>
+            </div>
+
+            <div th:if="${error}" style="background-color: #fdeaea; color: #c0392b; padding: 10px 15px; border-radius: 6px; margin-bottom: 20px;">
+                <span th:text="${error}"></span>
+            </div>
+
+            <div th:if="${chats == null or chats.empty}" class="empty-message">
+            <h2 style="margin-top: 0; color: var(--text-dark);">No Active Chats</h2>
+            <p>You haven't matched with anyone yet. Head over to <a href="/skills/search">Find Skills</a> and send some swap requests!</p>
+        </div>
+
+        <div class="chat-list" th:if="${chats != null and !chats.empty}">
+            <a th:each="chat : ${chats}" th:href="@{/chat/{id}(id=${chat.id})}" class="chat-card">
+                <!-- If current user is sender, show receiver's avatar -->
+                <div th:if="${chat.sender.id == currentUser.id}" class="avatar" th:text="${#strings.substring(chat.receiver.username,0,1).toUpperCase()}">U</div>
+                <!-- If current user is receiver, show sender's avatar -->
+                <div th:if="${chat.receiver.id == currentUser.id}" class="avatar" th:text="${#strings.substring(chat.sender.username,0,1).toUpperCase()}">U</div>
+                
+                <div class="chat-info">
+                    <h3 th:if="${chat.sender.id == currentUser.id}" th:text="${chat.receiver.username}">User</h3>
+                    <h3 th:if="${chat.receiver.id == currentUser.id}" th:text="${chat.sender.username}">User</h3>
+                    
+                    <p style="margin-bottom: 3px;">
+                        <strong>Skill Match:</strong> 
+                        <span th:text="${chat.requestedSkill}">Requested</span> ↔ 
+                        <span th:text="${chat.offeredSkill}">Offered</span>
+                    </p>
+                    <p style="font-size: 0.8rem;">Matched on: <span th:text="${#temporals.format(chat.requestDate, 'MMM dd, yyyy')}">Date</span></p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>
